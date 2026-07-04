@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BlackBoxLab - Black-box Optimization Testbed</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="mark">BB</div>
+          <div>
+            <h1>BlackBoxLab</h1>
+            <p>Black-box optimization testbed</p>
+          </div>
+        </div>
+
+        <details class="panel utility-panel">
+          <summary class="import-toggle">
+            <span>
+              <strong>Platform tools</strong>
+              <small>Status, presets, and reproducibility</small>
+            </span>
+            <span class="toggle-state">
+              <span class="closed-label">Open</span>
+              <span class="open-label">Close</span>
+            </span>
+          </summary>
+          <div class="import-body">
+            <div id="platformStats" class="platform-stats">
+              <div><span>Multi-objective</span><strong>-</strong></div>
+              <div><span>Single-objective</span><strong>-</strong></div>
+            </div>
+            <div id="moduleHealth" class="module-health">Registry status is loading.</div>
+            <div class="preset-tools">
+              <strong>Run presets</strong>
+              <div class="preset-grid">
+                <button class="secondary" type="button" data-preset="smoke">Smoke</button>
+                <button class="secondary" type="button" data-preset="expensive">Expensive</button>
+                <button class="secondary" type="button" data-preset="paper">Paper</button>
+                <button class="secondary" type="button" data-preset="large">Large-scale</button>
+              </div>
+            </div>
+            <div class="config-tools">
+              <strong>Reproducibility</strong>
+              <pre id="configPreview" class="config-preview">{}</pre>
+              <div class="utility-actions two-column">
+                <button id="copyConfig" class="secondary" type="button">Copy config</button>
+                <button id="downloadConfig" class="secondary" type="button">Download config</button>
+                <button id="refreshRegistry" class="secondary" type="button">Refresh registry</button>
+                <button id="downloadHistory" class="secondary" type="button">Download history</button>
+              </div>
+              <p id="registryStatus" class="summary benchmark-summary">Registry auto-refreshes when local modules change.</p>
+            </div>
+            <div class="history-tools">
+              <div class="history-head">
+                <strong>Recent runs</strong>
+                <button id="clearHistory" class="secondary tiny-button" type="button">Clear</button>
+              </div>
+              <div id="runHistoryList" class="run-history-list">
+                <p class="summary benchmark-summary">No saved local runs yet.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="panel import-panel">
+          <summary class="import-toggle">
+            <span>
+              <strong>Submit optimization problem</strong>
+              <small>Add a custom benchmark</small>
+            </span>
+            <span class="toggle-state">
+              <span class="closed-label">Open</span>
+              <span class="open-label">Close</span>
+            </span>
+          </summary>
+          <div class="import-body">
+            <p class="summary benchmark-summary">Paste a Python problem definition, give it a unique display name, then solve it with any registered method.</p>
+            <label class="stacked-label" for="customProblemName">Problem name</label>
+            <input id="customProblemName" type="text" maxlength="80" placeholder="My optimization problem" autocomplete="off" />
+            <textarea id="customProblemCode" class="code-editor" spellcheck="false"></textarea>
+            <div class="actions">
+              <button id="loadProblemExample" class="secondary" type="button">Load example</button>
+              <button id="submitProblem" type="button">Submit problem</button>
+            </div>
+            <p id="importStatus" class="summary benchmark-summary">The submitted problem runs on the local Python backend and appears in the benchmark selector.</p>
+            <div class="doc-links">
+              <a href="/docs/custom_benchmarks.md" target="_blank">Benchmark docs</a>
+            </div>
+          </div>
+        </details>
+
+        <details class="panel import-panel">
+          <summary class="import-toggle">
+            <span>
+              <strong>Submit test algorithm</strong>
+              <small>Add a custom optimizer</small>
+            </span>
+            <span class="toggle-state">
+              <span class="closed-label">Open</span>
+              <span class="open-label">Close</span>
+            </span>
+          </summary>
+          <div class="import-body">
+            <p class="summary benchmark-summary">Paste a Python optimizer definition, give it a unique display name, then compare it in tests or experiments.</p>
+            <label class="stacked-label" for="customOptimizerName">Algorithm name</label>
+            <input id="customOptimizerName" type="text" maxlength="80" placeholder="My optimizer" autocomplete="off" />
+            <textarea id="customOptimizerCode" class="code-editor" spellcheck="false"></textarea>
+            <div class="actions">
+              <button id="loadOptimizerExample" class="secondary" type="button">Load example</button>
+              <button id="submitOptimizer" type="button">Submit method</button>
+            </div>
+            <p id="optimizerImportStatus" class="summary benchmark-summary">The submitted method appears in the optimizer selector and Experiment Lab method list.</p>
+            <div class="doc-links">
+              <a href="/docs/custom_optimizers.md" target="_blank">Optimizer docs</a>
+            </div>
+          </div>
+        </details>
+      </aside>
+
+      <section class="workspace">
+        <div class="workspace-tabs" role="tablist" aria-label="Workspace mode">
+          <button id="singleObjectiveTab" class="tab-button active" type="button" data-workspace-view="singleObjective">Single-objective Test</button>
+          <button id="singleObjectiveExperimentTab" class="tab-button" type="button" data-workspace-view="singleObjectiveExperiment">Single-objective Experiments</button>
+          <button id="singleRunTab" class="tab-button" type="button" data-workspace-view="single">Multi-objective Test</button>
+          <button id="experimentTab" class="tab-button" type="button" data-workspace-view="experiment">Multi-objective Experiments</button>
+        </div>
+
+        <div id="singleRunView" class="workspace-view">
+        <section class="single-control-board mo-control-board">
+          <div class="panel setup-card">
+            <label for="benchmarkSelect">Benchmark function</label>
+            <input id="benchmarkFilter" class="select-filter" type="search" placeholder="Search benchmarks" autocomplete="off" />
+            <select id="benchmarkSelect"></select>
+            <p id="benchmarkSummary" class="summary benchmark-summary"></p>
+            <label class="stacked-label" for="optimizerSelect">Optimization method</label>
+            <input id="optimizerFilter" class="select-filter" type="search" placeholder="Search methods" autocomplete="off" />
+            <select id="optimizerSelect"></select>
+            <p id="optimizerSummary" class="summary benchmark-summary"></p>
+            <div id="problemDefinition" class="definition-list"></div>
+          </div>
+
+          <div class="panel">
+            <h2>Multi-objective settings</h2>
+            <div class="settings-grid">
+              <label for="populationSize">Population size</label>
+              <input id="populationSize" type="number" min="1" max="200" step="1" />
+              <label for="maxEvaluations">Max evaluations</label>
+              <input id="maxEvaluations" type="number" min="1" max="5000" step="1" />
+              <label for="dimensionInput">Dimension</label>
+              <input id="dimensionInput" type="number" min="1" max="200" step="1" />
+              <label for="objectiveCountInput">Objectives</label>
+              <input id="objectiveCountInput" type="number" min="2" max="15" step="1" />
+            </div>
+            <div class="actions">
+              <button id="applySettings" type="button">Apply settings</button>
+              <button id="runBudget" type="button">Run to budget</button>
+            </div>
+            <div class="actions compact">
+              <button id="step" type="button">Run round</button>
+              <button id="auto" type="button">Run 5 rounds</button>
+            </div>
+            <button id="reset" class="secondary full-button" type="button">Reset</button>
+            <p id="settingsSummary" class="summary benchmark-summary"></p>
+          </div>
+
+          <div class="panel mo-status-panel">
+            <h2>Current status</h2>
+            <div class="mo-status-grid">
+              <div class="status-item">
+                <span>Evaluations</span>
+                <strong id="nEvaluations">0</strong>
+              </div>
+              <div class="status-item">
+                <span>Pareto points</span>
+                <strong id="paretoCount">0</strong>
+              </div>
+              <div class="status-item metric-select">
+                <label for="metricSelect">Metric</label>
+                <select id="metricSelect">
+                  <option value="hypervolume">Hypervolume</option>
+                  <option value="igd">IGD</option>
+                  <option value="igdPlus">IGD+</option>
+                  <option value="gd">GD</option>
+                  <option value="recommendedScore">Recommended objective value</option>
+                  <option value="paretoCount">Pareto count</option>
+                </select>
+                <strong id="selectedMetricValue">0.000</strong>
+                <span id="selectedMetricDirection">higher is better</span>
+              </div>
+              <div class="status-item">
+                <span>Current strategy</span>
+                <strong id="strategy">initial</strong>
+              </div>
+              <div class="status-item wide">
+                <span>Surrogate uncertainty</span>
+                <strong id="uncertainty">proxy</strong>
+              </div>
+            </div>
+            <div class="solution-section-title">Recommended solution</div>
+            <div id="recommendation" class="recommendation"></div>
+          </div>
+        </section>
+
+        <section class="viz-grid">
+          <div class="chart-panel">
+            <div class="chart-head">
+              <div class="chart-title">
+                <h2>Objective tradeoff map</h2>
+                <span id="chartSubtitle">Objective 1 vs Objective 2</span>
+              </div>
+              <label class="view-control" for="objectiveView">
+                <span>View</span>
+                <select id="objectiveView">
+                  <option value="2d">2D projection</option>
+                  <option value="3d">3D objectives</option>
+                </select>
+              </label>
+              <div class="chart-actions">
+                <button id="downloadChartSvg" class="secondary" type="button">SVG</button>
+                <button id="downloadChartPng" class="secondary" type="button">PNG</button>
+              </div>
+            </div>
+            <svg id="scatter" viewBox="0 0 760 470" role="img" aria-label="Pareto scatter plot"></svg>
+          </div>
+          <div class="chart-panel">
+            <div class="chart-head">
+              <h2>Pareto front</h2>
+              <span>Non-dominated solutions and preferred recommendation</span>
+            </div>
+            <div id="paretoList" class="pareto-list"></div>
+          </div>
+        </section>
+
+        <section class="bottom-grid">
+          <div class="panel flush log-panel">
+            <h2>Optimization log</h2>
+            <ol id="events" class="events"></ol>
+          </div>
+          <div class="panel flush">
+            <h2>Last evaluated candidates</h2>
+            <div id="candidates" class="candidate-list"></div>
+          </div>
+        </section>
+
+        <section class="preference-grid">
+          <div class="panel">
+            <label for="feedback">Natural language preference</label>
+            <textarea id="feedback" spellcheck="false"></textarea>
+            <button id="applyFeedback" class="full-button" type="button">Apply feedback</button>
+          </div>
+          <div class="panel">
+            <h2>Preference weights</h2>
+            <div id="weights" class="weights"></div>
+            <p id="preferenceSummary" class="summary"></p>
+            <ul id="notes" class="notes"></ul>
+          </div>
+        </section>
+
+        <section class="note-grid">
+          <div class="panel model-panel">
+            <h2>Surrogate model note</h2>
+            <p id="surrogateNote" class="summary"></p>
+          </div>
+
+          <div class="panel model-panel">
+            <h2>Experiment result</h2>
+            <p id="experimentResult" class="summary"></p>
+          </div>
+        </section>
+        </div>
+
+        <div id="experimentView" class="workspace-view">
+        <section class="panel experiment-panel">
+          <div class="chart-head">
+            <div class="chart-title">
+              <h2>Experiment Lab</h2>
+              <span>Batch comparisons with independent seeds, statistical tables, and exportable results</span>
+            </div>
+          </div>
+          <div class="experiment-form">
+            <div class="exp-field wide">
+              <label for="expBenchmarks">Benchmarks</label>
+              <input id="expBenchmarkFilter" class="select-filter" type="search" placeholder="Filter benchmarks" autocomplete="off" />
+              <select id="expBenchmarks" multiple size="6"></select>
+              <div class="selection-tools">
+                <button class="secondary tiny-button" type="button" data-select-action="current" data-select-target="expBenchmarks">Current</button>
+                <button class="secondary tiny-button" type="button" data-select-action="visible" data-select-target="expBenchmarks">Visible</button>
+                <button class="secondary tiny-button" type="button" data-select-action="clear" data-select-target="expBenchmarks">Clear</button>
+              </div>
+            </div>
+            <div class="exp-field wide">
+              <label for="expOptimizers">Methods</label>
+              <input id="expOptimizerFilter" class="select-filter" type="search" placeholder="Filter methods" autocomplete="off" />
+              <select id="expOptimizers" multiple size="4"></select>
+              <div class="selection-tools">
+                <button class="secondary tiny-button" type="button" data-select-action="core" data-select-target="expOptimizers">Core</button>
+                <button class="secondary tiny-button" type="button" data-select-action="expensive" data-select-target="expOptimizers">Expensive</button>
+                <button class="secondary tiny-button" type="button" data-select-action="visible" data-select-target="expOptimizers">Visible</button>
+                <button class="secondary tiny-button" type="button" data-select-action="clear" data-select-target="expOptimizers">Clear</button>
+              </div>
+            </div>
+            <div class="exp-field">
+              <label for="expRepeats">Repeats</label>
+              <input id="expRepeats" type="number" min="1" max="30" step="1" value="3" />
+            </div>
+            <div class="exp-field">
+              <label for="expSeed">First seed</label>
+              <input id="expSeed" type="number" min="1" max="999999" step="1" value="7001" />
+            </div>
+            <div class="exp-field">
+              <label for="expPopulation">Population</label>
+              <input id="expPopulation" type="number" min="1" max="100" step="1" value="9" />
+            </div>
+            <div class="exp-field">
+              <label for="expBudget">Max evaluations</label>
+              <input id="expBudget" type="number" min="2" max="1000" step="1" value="60" />
+            </div>
+            <div class="exp-field">
+              <label for="expDimension">Dimension</label>
+              <input id="expDimension" type="number" min="1" max="200" step="1" value="3" />
+            </div>
+            <div class="exp-field">
+              <label for="expObjectives">Objectives</label>
+              <input id="expObjectives" type="number" min="2" max="15" step="1" value="3" />
+            </div>
+            <div class="exp-field">
+              <label for="expWorkers">Workers</label>
+              <input id="expWorkers" type="number" min="1" max="8" step="1" value="4" />
+            </div>
+            <div class="exp-field">
+              <label for="expMetric">Metric</label>
+              <select id="expMetric">
+                <option value="hypervolume">Hypervolume</option>
+                <option value="igd">IGD</option>
+                <option value="igdPlus">IGD+</option>
+                <option value="gd">GD</option>
+                  <option value="recommendedScore">Recommended objective value</option>
+                <option value="paretoCount">Pareto count</option>
+                <option value="elapsedMs">Elapsed time</option>
+              </select>
+            </div>
+            <div class="exp-field">
+              <label for="expReference">Reference method</label>
+              <select id="expReference"></select>
+            </div>
+            <div class="experiment-actions">
+              <button id="runExperiment" type="button">Run comparison</button>
+              <button id="downloadCsv" class="secondary" type="button" disabled>Download CSV</button>
+              <button id="downloadStatsCsv" class="secondary" type="button" disabled>Download stats table</button>
+              <button id="downloadMatrixCsv" class="secondary" type="button" disabled>Download significance</button>
+              <button id="downloadReportHtml" class="secondary" type="button" disabled>Download HTML report</button>
+              <button id="downloadStatsPng" class="secondary" type="button" disabled>Stats PNG</button>
+              <button id="downloadMatrixPng" class="secondary" type="button" disabled>Matrix PNG</button>
+              <button id="downloadJson" class="secondary" type="button" disabled>Download JSON</button>
+            </div>
+          </div>
+          <div id="experimentScale" class="experiment-scale">Experiment scale is waiting for selection.</div>
+          <p id="experimentStatus" class="summary benchmark-summary">Choose one or more benchmarks and methods, then run a backend comparison.</p>
+          <div id="paperStatsTable" class="table-wrap paper-table"></div>
+          <div id="pairwiseMatrix" class="table-wrap paper-table"></div>
+          <div id="experimentSummary" class="table-wrap"></div>
+          <div id="experimentRows" class="table-wrap compact-table"></div>
+        </section>
+        </div>
+
+        <div id="singleObjectiveView" class="workspace-view active">
+        <section class="single-control-board so-control-board">
+          <div class="panel setup-card">
+            <label for="soBenchmarkSelect">Single-objective function</label>
+            <input id="soBenchmarkFilter" class="select-filter" type="search" placeholder="Search functions" autocomplete="off" />
+            <select id="soBenchmarkSelect"></select>
+            <p id="soBenchmarkSummary" class="summary benchmark-summary"></p>
+            <label class="stacked-label" for="soMethodSelect">Optimization method</label>
+            <input id="soMethodFilter" class="select-filter" type="search" placeholder="Search methods" autocomplete="off" />
+            <select id="soMethodSelect"></select>
+            <p id="soMethodSummary" class="summary benchmark-summary"></p>
+            <div id="soDefinition" class="definition-list"></div>
+          </div>
+
+          <div class="panel">
+            <h2>Single-objective settings</h2>
+            <div class="settings-grid">
+              <label for="soPopulationSize">Population size</label>
+              <input id="soPopulationSize" type="number" min="1" max="300" step="1" />
+              <label for="soMaxEvaluations">Max evaluations</label>
+              <input id="soMaxEvaluations" type="number" min="1" max="10000" step="1" />
+              <label for="soDimensionInput">Dimension</label>
+              <input id="soDimensionInput" type="number" min="1" max="200" step="1" />
+            </div>
+            <div class="actions">
+              <button id="soApplySettings" type="button">Apply settings</button>
+              <button id="soRunBudget" type="button">Run to budget</button>
+            </div>
+            <div class="actions compact">
+              <button id="soRunRound" type="button">Run round</button>
+              <button id="soReset" type="button">Reset</button>
+            </div>
+            <p id="soSettingsSummary" class="summary benchmark-summary"></p>
+          </div>
+
+          <div class="panel so-best-panel">
+            <h2>Current status</h2>
+            <div id="soBestSolution" class="recommendation"></div>
+          </div>
+        </section>
+
+        <section class="viz-grid so-viz-grid">
+          <div class="chart-panel">
+            <div class="chart-head so-search-head">
+              <div class="chart-title">
+                <h2>Population search map</h2>
+                <span id="soSearchSubtitle">x1 vs x2, color shows objective value</span>
+              </div>
+              <label class="view-control" for="soSearchView">
+                <span>View</span>
+                <select id="soSearchView">
+                  <option value="2d">2D</option>
+                  <option value="3d">3D</option>
+                </select>
+              </label>
+              <label class="toggle-control" for="soLandscapeToggle">
+                <input id="soLandscapeToggle" type="checkbox" />
+                <span>Landscape</span>
+              </label>
+              <label class="toggle-control history-toggle" for="soHistoryToggle">
+                <input id="soHistoryToggle" type="checkbox" checked />
+                <span>History</span>
+              </label>
+              <div class="chart-actions">
+                <button id="soDownloadSearchSvg" class="secondary" type="button">SVG</button>
+                <button id="soDownloadSearchPng" class="secondary" type="button">PNG</button>
+                <button id="soDownloadSearchGif" class="secondary" type="button">GIF</button>
+              </div>
+            </div>
+            <svg id="soSearch" viewBox="0 0 760 470" role="img" aria-label="Single-objective population search map"></svg>
+          </div>
+          <div class="chart-panel">
+            <div class="chart-head">
+              <div class="chart-title">
+                <h2>Convergence curve</h2>
+                <span>Observed value and best-so-far, lower is better</span>
+              </div>
+              <div class="chart-actions">
+                <button id="soDownloadConvergenceSvg" class="secondary" type="button">SVG</button>
+                <button id="soDownloadConvergencePng" class="secondary" type="button">PNG</button>
+                <button id="soDownloadConvergenceGif" class="secondary" type="button">GIF</button>
+              </div>
+            </div>
+            <svg id="soConvergence" viewBox="0 0 760 470" role="img" aria-label="Single-objective convergence curve"></svg>
+          </div>
+        </section>
+
+        <section class="bottom-grid">
+          <div class="panel flush log-panel">
+            <h2>Single-objective log</h2>
+            <ol id="soEvents" class="events"></ol>
+          </div>
+          <div class="panel flush">
+            <h2>Last evaluated candidates</h2>
+            <div id="soCandidates" class="candidate-list"></div>
+          </div>
+        </section>
+        </div>
+
+        <div id="singleObjectiveExperimentView" class="workspace-view">
+        <section class="panel experiment-panel single-objective-experiment-panel">
+          <div class="chart-head">
+            <div class="chart-title">
+              <h2>Single-objective Experiments</h2>
+              <span>Batch comparisons for single-objective benchmark functions, independent seeds, and exportable statistics</span>
+            </div>
+          </div>
+          <div class="experiment-form single-objective-experiment-form">
+            <div class="exp-field wide">
+              <label for="soExpBenchmarks">Benchmarks</label>
+              <input id="soExpBenchmarkFilter" class="select-filter" type="search" placeholder="Filter benchmarks" autocomplete="off" />
+              <select id="soExpBenchmarks" multiple size="6"></select>
+              <div class="selection-tools">
+                <button class="secondary tiny-button" type="button" data-select-action="current" data-select-target="soExpBenchmarks">Current</button>
+                <button class="secondary tiny-button" type="button" data-select-action="visible" data-select-target="soExpBenchmarks">Visible</button>
+                <button class="secondary tiny-button" type="button" data-select-action="clear" data-select-target="soExpBenchmarks">Clear</button>
+              </div>
+            </div>
+            <div class="exp-field wide">
+              <label for="soExpMethods">Methods</label>
+              <input id="soExpMethodFilter" class="select-filter" type="search" placeholder="Filter methods" autocomplete="off" />
+              <select id="soExpMethods" multiple size="6"></select>
+              <div class="selection-tools">
+                <button class="secondary tiny-button" type="button" data-select-action="core" data-select-target="soExpMethods">Core</button>
+                <button class="secondary tiny-button" type="button" data-select-action="expensive" data-select-target="soExpMethods">Expensive</button>
+                <button class="secondary tiny-button" type="button" data-select-action="visible" data-select-target="soExpMethods">Visible</button>
+                <button class="secondary tiny-button" type="button" data-select-action="clear" data-select-target="soExpMethods">Clear</button>
+              </div>
+            </div>
+            <div class="exp-field">
+              <label for="soExpRepeats">Repeats</label>
+              <input id="soExpRepeats" type="number" min="1" max="30" step="1" value="3" />
+            </div>
+            <div class="exp-field">
+              <label for="soExpSeed">First seed</label>
+              <input id="soExpSeed" type="number" min="1" max="999999" step="1" value="9001" />
+            </div>
+            <div class="exp-field">
+              <label for="soExpPopulation">Population</label>
+              <input id="soExpPopulation" type="number" min="1" max="100" step="1" value="18" />
+            </div>
+            <div class="exp-field">
+              <label for="soExpBudget">Max evaluations</label>
+              <input id="soExpBudget" type="number" min="2" max="1000" step="1" value="120" />
+            </div>
+            <div class="exp-field">
+              <label for="soExpDimension">Dimension</label>
+              <input id="soExpDimension" type="number" min="1" max="200" step="1" value="5" />
+            </div>
+            <div class="exp-field">
+              <label for="soExpWorkers">Workers</label>
+              <input id="soExpWorkers" type="number" min="1" max="8" step="1" value="4" />
+            </div>
+            <div class="exp-field">
+              <label for="soExpMetric">Metric</label>
+              <select id="soExpMetric">
+                <option value="bestValue">Best value</option>
+                <option value="optimumGap">Optimum gap</option>
+                <option value="meanValue">Mean value</option>
+                <option value="elapsedMs">Elapsed time</option>
+              </select>
+            </div>
+            <div class="exp-field">
+              <label for="soExpReference">Reference method</label>
+              <select id="soExpReference"></select>
+            </div>
+            <div class="experiment-actions">
+              <button id="soRunExperiment" type="button">Run comparison</button>
+              <button id="soDownloadCsv" class="secondary" type="button" disabled>Download CSV</button>
+              <button id="soDownloadStatsCsv" class="secondary" type="button" disabled>Download stats table</button>
+              <button id="soDownloadMatrixCsv" class="secondary" type="button" disabled>Download significance</button>
+              <button id="soDownloadReportHtml" class="secondary" type="button" disabled>Download HTML report</button>
+              <button id="soDownloadStatsPng" class="secondary" type="button" disabled>Stats PNG</button>
+              <button id="soDownloadMatrixPng" class="secondary" type="button" disabled>Matrix PNG</button>
+              <button id="soDownloadJson" class="secondary" type="button" disabled>Download JSON</button>
+            </div>
+          </div>
+          <div id="soExperimentScale" class="experiment-scale">Experiment scale is waiting for selection.</div>
+          <p id="soExperimentStatus" class="summary benchmark-summary">Choose one or more single-objective functions and methods, then run a backend comparison.</p>
+          <div id="soPaperStatsTable" class="table-wrap paper-table"></div>
+          <div id="soPairwiseMatrix" class="table-wrap paper-table"></div>
+          <div id="soExperimentSummary" class="table-wrap"></div>
+          <div id="soExperimentRows" class="table-wrap compact-table"></div>
+        </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

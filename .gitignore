@@ -1,0 +1,37 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local runtime logs
+*.log
+server*.out
+server*.err
+
+# Local user-submitted runtime modules
+benchmarks/custom_submitted_*.py
+methods/custom_submitted_*.py
+
+# Local environments and secrets
+.env
+.env.*
+*.pem
+*.key
+*.token
+
+# Editor and OS noise
+.idea/
+.vscode/
+Thumbs.db
+Desktop.ini
+
+# Dependency folders, if added later
+node_modules/
+.venv/
+venv/
+env/
+
+# Generated exports
+exports/
+reports/
+downloads/

@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pareto-aware LILO-MOBO Standalone Demo</title>
+    <link rel="stylesheet" href="static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="mark">PL</div>
+          <div>
+            <h1>Pareto-aware LILO-MOBO</h1>
+            <p>Standalone browser demo</p>
+          </div>
+        </div>
+
+        <section class="panel">
+          <label for="benchmarkSelect">Benchmark function</label>
+          <select id="benchmarkSelect"></select>
+          <p id="benchmarkSummary" class="summary benchmark-summary"></p>
+          <label class="stacked-label" for="optimizerSelect">Optimization method</label>
+          <select id="optimizerSelect"></select>
+          <p id="optimizerSummary" class="summary benchmark-summary"></p>
+          <div id="problemDefinition" class="definition-list"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Experiment settings</h2>
+          <div class="settings-grid">
+            <label for="populationSize">Population size</label>
+            <input id="populationSize" type="number" min="1" max="200" step="1" />
+            <label for="maxEvaluations">Max evaluations</label>
+            <input id="maxEvaluations" type="number" min="1" max="5000" step="1" />
+            <label for="dimensionInput">Dimension</label>
+            <input id="dimensionInput" type="number" min="1" max="200" step="1" />
+          </div>
+          <div class="actions">
+            <button id="applySettings" type="button">Apply settings</button>
+            <button id="runBudget" type="button">Run to budget</button>
+          </div>
+          <p id="settingsSummary" class="summary benchmark-summary"></p>
+        </section>
+
+        <section class="panel">
+          <label for="feedback">Natural language preference</label>
+          <textarea id="feedback" spellcheck="false"></textarea>
+          <div class="actions">
+            <button id="applyFeedback" type="button">Apply feedback</button>
+            <button id="step" type="button">Run round</button>
+          </div>
+          <div class="actions compact">
+            <button id="auto" type="button">Run 5 rounds</button>
+            <button id="reset" type="button">Reset</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Preference weights</h2>
+          <div id="weights" class="weights"></div>
+          <p id="preferenceSummary" class="summary"></p>
+          <ul id="notes" class="notes"></ul>
+        </section>
+
+        <section class="panel">
+          <h2>Optimization log</h2>
+          <ol id="events" class="events"></ol>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <div class="metrics">
+          <div class="metric">
+            <span>Evaluations</span>
+            <strong id="nEvaluations">0</strong>
+          </div>
+          <div class="metric">
+            <span>Pareto points</span>
+            <strong id="paretoCount">0</strong>
+          </div>
+          <div class="metric">
+            <span>Hypervolume</span>
+            <strong id="hypervolume">0.000</strong>
+          </div>
+          <div class="metric wide">
+            <span>Current strategy</span>
+            <strong id="strategy">initial</strong>
+          </div>
+          <div class="metric wide">
+            <span>Surrogate uncertainty</span>
+            <strong id="uncertainty">proxy</strong>
+          </div>
+        </div>
+
+        <section class="panel model-panel">
+          <h2>Surrogate model note</h2>
+          <p id="surrogateNote" class="summary"></p>
+        </section>
+
+        <section class="panel model-panel">
+          <h2>Experiment result</h2>
+          <p id="experimentResult" class="summary"></p>
+        </section>
+
+        <section class="viz-grid">
+          <div class="chart-panel">
+            <div class="chart-head">
+              <div class="chart-title">
+                <h2>Objective tradeoff map</h2>
+                <span id="chartSubtitle">Objective 1 vs Objective 2</span>
+              </div>
+              <label class="view-control" for="objectiveView">
+                <span>View</span>
+                <select id="objectiveView">
+                  <option value="2d">2D projection</option>
+                  <option value="3d">3D objectives</option>
+                </select>
+              </label>
+            </div>
+            <svg id="scatter" viewBox="0 0 760 470" role="img" aria-label="Pareto scatter plot"></svg>
+          </div>
+          <div class="chart-panel">
+            <div class="chart-head">
+              <h2>Pareto front</h2>
+              <span>Non-dominated solutions and preferred recommendation</span>
+            </div>
+            <div id="paretoList" class="pareto-list"></div>
+          </div>
+        </section>
+
+        <section class="bottom-grid">
+          <div class="panel flush">
+            <h2>Recommended solution</h2>
+            <div id="recommendation" class="recommendation"></div>
+          </div>
+          <div class="panel flush">
+            <h2>Last evaluated candidates</h2>
+            <div id="candidates" class="candidate-list"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="static/benchmarks/registry.js"></script>
+    <script src="static/benchmarks/synthetic.js"></script>
+    <script src="static/benchmarks/zdt.js"></script>
+    <script src="static/benchmarks/dtlz.js"></script>
+    <script src="static/standalone.js"></script>
+    <script src="static/methods/registry.js"></script>
+    <script src="static/methods/lilo-bo.js"></script>
+    <script src="static/methods/nsga2.js"></script>
+    <script src="static/methods/moead.js"></script>
+    <script src="static/boot.js"></script>
+  </body>
+</html>
